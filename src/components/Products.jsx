@@ -1,17 +1,35 @@
 import React from "react";
-import { useState, useEffect } from "react";
-import axios from "axios";
+import { useEffect } from "react";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
+import { useDispatch, useSelector } from "react-redux";
+import { add } from "../store/cartSlice";
+import { getProducts } from "../store/productSlice";
+import StatusCode from "../utils/StatusCode";
 
 function Products() {
-  const [products, setProducts] = useState([]);
+  const dispatch = useDispatch();
+  const { data: products, status } = useSelector((state) => state.products);
 
   useEffect(() => {
-    axios
-      .get(`https://fakestoreapi.com/products/`)
-      .then((res) => setProducts(res.data));
+    dispatch(getProducts());
   }, []);
+
+  if (status === StatusCode.LOADING) {
+    return <h1 style={{ textAlign: "center" }}>Loading...</h1>;
+  }
+
+  if (status === StatusCode.ERROR) {
+    return (
+      <h1 style={{ textAlign: "center" }}>
+        Something went wrong! Try again later
+      </h1>
+    );
+  }
+
+  const addToCart = (item) => {
+    dispatch(add(item));
+  };
 
   const cards = products.map((item) => (
     <div key={item.id} className="col-md-3" style={{ marginBottom: "30px" }}>
@@ -29,7 +47,9 @@ function Products() {
             </Card.Text>
           </Card.Body>
           <Card.Footer>
-            <Button variant="primary">Add to cart</Button>
+            <Button variant="primary" onClick={() => addToCart(item)}>
+              Add to cart
+            </Button>
           </Card.Footer>
         </div>
       </Card>
